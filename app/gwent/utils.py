@@ -1,9 +1,12 @@
+import math
 import httpx
 import pycountry
 from bs4 import BeautifulSoup
 from collections import OrderedDict
 import datetime
 import time
+
+import requests
 
 from app.gwent.dao import PlayersDAO
 from app.bot.dao import PropertiesDAO
@@ -99,7 +102,7 @@ class GwentAPI:
         now = datetime.datetime.now()
         month_name = now.strftime("%B").lower()
         year = now.year
-        url = f"https://masters.playgwent.com/en/rankings/gwentfinity-1/{month_name}-season-{year}"
+        url = f"https://masters.playgwent.com/en/rankings/gwentfinity-2/{month_name}-season-{year}"
 
         data = []
         r1 = await self.client.get(url)
@@ -153,4 +156,102 @@ class GwentProfileParser:
         for faction, cards in info.items():
             result += f"{faction}: {cards['non_premium']}/{cards['non_premium_overall']} - {cards['premium']}/{cards['premium_overall']} - {cards['any']}/{cards['any_overall']}\n"
         result += f"\nAll: {all_current}/{all_total}\n```"
+        return result
+
+
+class GwentSiteParser:
+    def get_pro_rank(self, number, end_number, page):
+        # soup = cache.get_data('top_ranking_info')
+        # if soup is None:
+        #     soup = cache.get_ranking_site_info()
+        #     cache.set_data('top_ranking_info', soup)
+        soup = GwentAPI().get_ranking_site_info()
+        if not soup:
+            return ("Недостаточно данных: сезон только начался или возникли проблемы на стороне официального "
+                    "сайта.\n\nThe command is currently unavailable due to a lack of data. The current season has "
+                    "just started, or there are technical issues on playgwent.com."), False
+        if page == 2:
+            info = soup[1]
+            places = 20
+        else:
+            info = soup[0]
+            places = 0
+        data = [[] for n in range(20)]
+        for n in range(number, end_number):
+            data[n].append(n + 1 + places)
+            country_code = str(info[n].find('div').next_sibling.find('i')).split('icon-', 1)[-1].split('"', 1)[
+                0].upper()
+            country = get_country_flag(country_code)
+            data[n].append(country)
+            player = info[n].find('div').next_sibling.find('strong').text
+            data[n].append(player)
+            matches = info[n].find('div').next_sibling.next_sibling.find('p').text.split()[0]
+            data[n].append(matches)
+            mmr = info[n].find('div').next_sibling.next_sibling.next_sibling.text.strip()
+            data[n].append(mmr)
+            # nilfgaard_score = str(soup[n].findAll('div')[4]).split('">', 1)[-1].split('<', 1)[0].strip()
+            # data[n].append(nilfgaard_score)
+            # scoia_score = str(soup[n].findAll('div')[7]).split('">', 1)[-1].split('<', 1)[0].strip()
+            # data[n].append(scoia_score)
+            # north_score = str(soup[n].findAll('div')[10]).split('">', 1)[-1].split('<', 1)[0].strip()
+            # data[n].append(north_score)
+            # skellige_score = str(soup[n].findAll('div')[13]).split('">', 1)[-1].split('<', 1)[0].strip()
+            # data[n].append(skellige_score)
+            # monsters_score = str(soup[n].findAll('div')[16]).split('">', 1)[-1].split('<', 1)[0].strip()
+            # data[n].append(monsters_score)
+        result = f"# - Country - Nickname - Matches - MMR\n\n"
+        for player in data:
+            if player:
+                result += f"{player[0]} - {player[1]}\t- {player[2]}\t- {player[3]}\t- {player[4]}\n"
+        return result, True
+
+
+    def get_mmr_threshold(self, place):
+        if place > 2860 or place < 1:
+            return "Place can't be more than 2860 or less than 1"
+        else:
+            current_datetime = datetime.datetime.now()
+            current_month_name = current_datetime.strftime("%B")
+            url = f"https://masters.playgwent.com/en/rankings/gwentfinity-2/{current_month_name.lower()}-season-{current_datetime.year}/1/{math.ceil(place / 20)}"
+            # response = requests.get(url)
+            # response = requests.get(url)
+            # response = requests.get(url)
+            response = requests.get(url)
+            if response.status_code == 200:
+                soup = BeautifulSoup(response.content, 'html.parser')
+                # prorank_description = soup.find('li', {'class': 'current'}).text.strip().lower().capitalize()
+                soup = soup.find('div', {'class': 'c-ranking-table__body'}).findAll('div', {'class': 'c-ranking-table__tr'})
+                data = [place]
+                for i in range(20):
+                    found_place = int(soup[i].find('div').find('p').text)
+                    if found_place == place:
+                        country_code = str(soup[i].find('div').next_sibling.find('i')).split('icon-', 1)[-1].split('"', 1)[
+                            0].upper()
+                        country = get_country_flag(country_code)
+                        data.append(country)
+
+                        player = soup[i].find('div').next_sibling.find('strong').text
+                        data.append(player)
+
+                        matches = soup[i].find('div').next_sibling.next_sibling.find('p').text.split()[0]
+                        data.append(matches)
+
+                        mmr = soup[i].find('div').next_sibling.next_sibling.next_sibling.text.strip()
+                        data.append(mmr)
+
+                        return f"{data[0]} - {data[1]} - {data[2]} - {data[3]} - {data[4]}"
+                return None
+            else:
+                return None
+        
+    def get_mmr_threshold_of_ranks(self):
+        result = f"Place - Country - Nickname - Matches - MMR\n\n"
+        ranks = [8, 32, 200, 500]
+        for rank in ranks:
+            rank_info = self.get_mmr_threshold(rank)
+            if rank_info is None:
+                return ("Недостаточно данных: сезон только начался или возникли проблемы на стороне официального "
+                        "сайта.\n\nThe command is currently unavailable due to a lack of data. The current season has "
+                        "just started, or there are technical issues on playgwent.com.")
+            result += rank_info + "\n"
         return result
