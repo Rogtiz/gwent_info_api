@@ -11,6 +11,8 @@ sys.path.insert(0, dirname(dirname(dirname(abspath(__file__)))))
 
 from app.database import Base
 from app.config import DATABASE_URL
+from app.bot.models import Properties, Users, Groups, Feedbacks
+from app.gwent.models import Players, OverallWinRate, RankWinRate, TopWinrate
 # from app.projects.models import Projects
 
 # this is the Alembic Config object, which provides
