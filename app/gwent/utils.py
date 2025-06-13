@@ -98,26 +98,28 @@ class GwentAPI:
             return soup
         return False
 
-    async def get_ranking_site_info(self) -> list | bool:
-        now = datetime.datetime.now()
-        month_name = now.strftime("%B").lower()
-        year = now.year
-        url = f"https://masters.playgwent.com/en/rankings/gwentfinity-2/{month_name}-season-{year}"
+    # async def get_ranking_site_info(self, page):
+    #     current_datetime = datetime.datetime.now()
+    #     current_month_name = current_datetime.strftime("%B")
+    #     url = f"https://masters.playgwent.com/en/rankings/gwentfinity-2/{current_month_name.lower()}-season-{current_datetime.year}/1/{page}"
 
-        data = []
-        r1 = await self.client.get(url)
-        if r1.status_code == 200:
-            soup = BeautifulSoup(r1.content, 'html.parser')
-            rows = soup.select('div.c-ranking-table__body > div.c-ranking-table__tr')
-            data.extend(rows)
+    #     data = []
+    #     r1 = await self.client.get(url)
+    #     if r1.status_code == 200:
+    #         soup = BeautifulSoup(r1.content, 'html.parser')
+    #         rows = soup.select('div.c-ranking-table__body > div.c-ranking-table__tr')
+    #         data.extend(rows)
 
-            r2 = await self.client.get(url + "/1/2")
-            if r2.status_code == 200:
-                soup2 = BeautifulSoup(r2.content, 'html.parser')
-                rows2 = soup2.select('div.c-ranking-table__body > div.c-ranking-table__tr')
-                data.extend(rows2)
-                return data
-        return False
+    #         print(rows)
+    #         print(data)
+
+    #         r2 = await self.client.get(url + "/1/2")
+    #         if r2.status_code == 200:
+    #             soup2 = BeautifulSoup(r2.content, 'html.parser')
+    #             rows2 = soup2.select('div.c-ranking-table__body > div.c-ranking-table__tr')
+    #             data.extend(rows2)
+    #             return data
+    #     return False
 
 
 class GwentProfileParser:
@@ -160,50 +162,95 @@ class GwentProfileParser:
 
 
 class GwentSiteParser:
-    def get_pro_rank(self, number, end_number, page):
-        # soup = cache.get_data('top_ranking_info')
-        # if soup is None:
-        #     soup = cache.get_ranking_site_info()
-        #     cache.set_data('top_ranking_info', soup)
-        soup = GwentAPI().get_ranking_site_info()
-        if not soup:
-            return ("Недостаточно данных: сезон только начался или возникли проблемы на стороне официального "
-                    "сайта.\n\nThe command is currently unavailable due to a lack of data. The current season has "
-                    "just started, or there are technical issues on playgwent.com."), False
-        if page == 2:
-            info = soup[1]
-            places = 20
+    # async def get_pro_rank(self, number, end_number, page):
+    #     # soup = cache.get_data('top_ranking_info')
+    #     # if soup is None:
+    #     #     soup = cache.get_ranking_site_info()
+    #     #     cache.set_data('top_ranking_info', soup)
+    #     soup = await GwentAPI().get_ranking_site_info(page)
+    #     print(soup)
+    #     if not soup:
+    #         return ("Недостаточно данных: сезон только начался или возникли проблемы на стороне официального "
+    #                 "сайта.\n\nThe command is currently unavailable due to a lack of data. The current season has "
+    #                 "just started, or there are technical issues on playgwent.com."), False
+    #     if page == 2:
+    #         info = soup[1]
+    #         places = 20
+    #     else:
+    #         info = soup[0]
+    #         places = 0
+    #     data = [[] for n in range(20)]
+    #     for n in range(number, end_number):
+    #         data[n].append(n + 1 + places)
+    #         country_code = str(info[n].find('div').next_sibling.find('i')).split('icon-', 1)[-1].split('"', 1)[
+    #             0].upper()
+    #         country = get_country_flag(country_code)
+    #         data[n].append(country)
+    #         player = info[n].find('div').next_sibling.find('strong').text
+    #         data[n].append(player)
+    #         matches = info[n].find('div').next_sibling.next_sibling.find('p').text.split()[0]
+    #         data[n].append(matches)
+    #         mmr = info[n].find('div').next_sibling.next_sibling.next_sibling.text.strip()
+    #         data[n].append(mmr)
+    #         # nilfgaard_score = str(soup[n].findAll('div')[4]).split('">', 1)[-1].split('<', 1)[0].strip()
+    #         # data[n].append(nilfgaard_score)
+    #         # scoia_score = str(soup[n].findAll('div')[7]).split('">', 1)[-1].split('<', 1)[0].strip()
+    #         # data[n].append(scoia_score)
+    #         # north_score = str(soup[n].findAll('div')[10]).split('">', 1)[-1].split('<', 1)[0].strip()
+    #         # data[n].append(north_score)
+    #         # skellige_score = str(soup[n].findAll('div')[13]).split('">', 1)[-1].split('<', 1)[0].strip()
+    #         # data[n].append(skellige_score)
+    #         # monsters_score = str(soup[n].findAll('div')[16]).split('">', 1)[-1].split('<', 1)[0].strip()
+    #         # data[n].append(monsters_score)
+    #     result = f"# - Country - Nickname - Matches - MMR\n\n"
+    #     for player in data:
+    #         if player:
+    #             result += f"{player[0]} - {player[1]}\t- {player[2]}\t- {player[3]}\t- {player[4]}\n"
+    #     return result, True
+
+    def get_top_ranks(self, page: int):
+        if page > 30 or page < 1:
+            return "Page can't be more than 30 or less than 1"
         else:
-            info = soup[0]
-            places = 0
-        data = [[] for n in range(20)]
-        for n in range(number, end_number):
-            data[n].append(n + 1 + places)
-            country_code = str(info[n].find('div').next_sibling.find('i')).split('icon-', 1)[-1].split('"', 1)[
-                0].upper()
-            country = get_country_flag(country_code)
-            data[n].append(country)
-            player = info[n].find('div').next_sibling.find('strong').text
-            data[n].append(player)
-            matches = info[n].find('div').next_sibling.next_sibling.find('p').text.split()[0]
-            data[n].append(matches)
-            mmr = info[n].find('div').next_sibling.next_sibling.next_sibling.text.strip()
-            data[n].append(mmr)
-            # nilfgaard_score = str(soup[n].findAll('div')[4]).split('">', 1)[-1].split('<', 1)[0].strip()
-            # data[n].append(nilfgaard_score)
-            # scoia_score = str(soup[n].findAll('div')[7]).split('">', 1)[-1].split('<', 1)[0].strip()
-            # data[n].append(scoia_score)
-            # north_score = str(soup[n].findAll('div')[10]).split('">', 1)[-1].split('<', 1)[0].strip()
-            # data[n].append(north_score)
-            # skellige_score = str(soup[n].findAll('div')[13]).split('">', 1)[-1].split('<', 1)[0].strip()
-            # data[n].append(skellige_score)
-            # monsters_score = str(soup[n].findAll('div')[16]).split('">', 1)[-1].split('<', 1)[0].strip()
-            # data[n].append(monsters_score)
-        result = f"# - Country - Nickname - Matches - MMR\n\n"
-        for player in data:
-            if player:
-                result += f"{player[0]} - {player[1]}\t- {player[2]}\t- {player[3]}\t- {player[4]}\n"
-        return result, True
+            current_datetime = datetime.datetime.now()
+            current_month_name = current_datetime.strftime("%B")
+            url = f"https://masters.playgwent.com/en/rankings/gwentfinity-2/{current_month_name.lower()}-season-{current_datetime.year}/1/{page}"
+            # response = requests.get(url)
+            # response = requests.get(url)
+            # response = requests.get(url)
+            result = []
+            response = requests.get(url)
+            if response.status_code == 200:
+                soup = BeautifulSoup(response.content, 'html.parser')
+                # prorank_description = soup.find('li', {'class': 'current'}).text.strip().lower().capitalize()
+                soup = soup.find('div', {'class': 'c-ranking-table__body'}).findAll('div', {'class': 'c-ranking-table__tr'})
+                for i in range(20):
+                    data = {
+                            "place": None,
+                            "country": None,
+                            "nickname": None,
+                            "matches": None,
+                            "mmr": None
+                        }
+                    found_place = int(soup[i].find('div').find('p').text)
+                    # if found_place == place:
+                    data["place"] = found_place
+                    country_code = str(soup[i].find('div').next_sibling.find('i')).split('icon-', 1)[-1].split('"', 1)[0].upper()
+                    country = get_country_flag(country_code)
+                    data["country"] = country
+                    player = soup[i].find('div').next_sibling.find('strong').text
+                    data["nickname"] = player
+                    matches = soup[i].find('div').next_sibling.next_sibling.find('p').text.split()[0]
+                    data["matches"] = matches
+                    mmr = soup[i].find('div').next_sibling.next_sibling.next_sibling.text.strip()
+                    data["mmr"] = mmr
+                    # return f"{data[0]} - {data[1]} - {data[2]} - {data[3]} - {data[4]}"
+                    result.append(data)
+                if result:
+                    return result
+                return None
+            else:
+                return None
 
 
     def get_mmr_threshold(self, place):
@@ -239,19 +286,24 @@ class GwentSiteParser:
                         mmr = soup[i].find('div').next_sibling.next_sibling.next_sibling.text.strip()
                         data.append(mmr)
 
-                        return f"{data[0]} - {data[1]} - {data[2]} - {data[3]} - {data[4]}"
+                        # return f"{data[0]} - {data[1]} - {data[2]} - {data[3]} - {data[4]}"
+                        return {
+                            "place": data[0],
+                            "country": data[1],
+                            "nickname": data[2],
+                            "matches": data[3],
+                            "mmr": data[4]
+                        }
                 return None
             else:
                 return None
         
     def get_mmr_threshold_of_ranks(self):
-        result = f"Place - Country - Nickname - Matches - MMR\n\n"
+        result = {"8": None, "32": None, "200": None, "500": None}
         ranks = [8, 32, 200, 500]
         for rank in ranks:
             rank_info = self.get_mmr_threshold(rank)
             if rank_info is None:
-                return ("Недостаточно данных: сезон только начался или возникли проблемы на стороне официального "
-                        "сайта.\n\nThe command is currently unavailable due to a lack of data. The current season has "
-                        "just started, or there are technical issues on playgwent.com.")
-            result += rank_info + "\n"
+                return None
+            result[rank] = rank_info
         return result

@@ -46,7 +46,7 @@ class Feedbacks(Base):
     __tablename__ = "feedbacks"
 
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, nullable=False)
+    user_id = Column(Integer)
     chat_id = Column(String, nullable=False)
     message = Column(String, nullable=False)
     is_fixed = Column(Boolean, default=False)
