@@ -19,7 +19,7 @@ async def get_user_id(username: str):
 
 
 @router.get("/user/{user_id}/ranking/{season_id}")
-@redis_cache(schema=FullUserRankingInfoSchema, key_func=lambda user_id: f"ranking_info:{user_id}", expire=1800)
+@redis_cache(schema=FullUserRankingInfoSchema, key_func=lambda user_id, season_id: f"ranking_info:{user_id}", expire=1800)
 async def get_ranking_info(user_id: str, season_id: str) -> FullUserRankingInfoSchema:
     ranking_info = await api.get_ranking_info(user_id, season_id)
     if ranking_info:
