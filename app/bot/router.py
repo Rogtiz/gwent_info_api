@@ -1,10 +1,11 @@
 from fastapi import APIRouter, HTTPException
 from app.bot.dao import UsersDAO, PropertiesDAO, FeedbacksDAO, GroupsDAO
 from app.bot.schemas import UserSchema, UserCreationSchema, FeedbackSchema, FeedbackCreationSchema, PropertyCreationSchema, GroupSchema, GroupCreationSchema, PropertySchema
+from app.redis import redis_client
 
 router = APIRouter()
 
-@router.get("user/{chat_id}")
+@router.get("/user/{chat_id}")
 async def get_user(chat_id: str) -> UserSchema:
     """
     Get user by chat_id.
@@ -19,7 +20,7 @@ async def create_user(user_data: UserCreationSchema) -> UserSchema:
     """
     Create a new user.
     """
-    user = await UsersDAO.add(user_data.dict())
+    user = await UsersDAO.add(**user_data.dict())
     if user:
         return user
     raise HTTPException(status_code=400, detail="User not created")
@@ -55,8 +56,12 @@ async def get_property(key: str) -> PropertySchema:
     """
     Get a property by key.
     """
+    cached_value = await redis_client.get(key)
+    if cached_value:
+        return cached_value
     property_value = await PropertiesDAO.find_one_or_none(name=key)
     if property_value:
+        await redis_client.set(key, property_value, ex=3600)
         return property_value
     raise HTTPException(status_code=404, detail="Property not found")
 
@@ -68,29 +73,35 @@ async def create_property(property_data: PropertyCreationSchema) -> PropertySche
     """
     property_value = await PropertiesDAO.add(**property_data.dict())
     if property_value:
-        return property_value.value
+        return property_value
     raise HTTPException(status_code=400, detail="Property not created")
 
 
 @router.delete("/property/{key}")
-async def delete_property(key: str) -> str:
+async def delete_property(key: str) -> PropertySchema:
     """
     Delete a property by key.
     """
-    deleted = await PropertiesDAO.delete(name=key)
-    if deleted:
-        return f"Property '{key}' deleted successfully"
+    property = await PropertiesDAO.find_one_or_none(name=key)
+    if not property:
+        raise HTTPException(status_code=404, detail="Property not found")
+    deleted = await PropertiesDAO.delete(model_id=property.id)
+    if not deleted:
+        return property
     raise HTTPException(status_code=404, detail="Property not found")
 
 
 @router.put("/property/{key}")
-async def update_property(key: str, value: str) -> str:
+async def update_property(key: str, value: str) -> PropertySchema:
     """
     Update a property by key.
     """
-    updated_property = await PropertiesDAO.update(name=key, value=value)
+    property = await PropertiesDAO.find_one_or_none(name=key)
+    if not property:
+        raise HTTPException(status_code=404, detail="Property not found")
+    updated_property = await PropertiesDAO.update(model_id=property.id, name=key, value=value)
     if updated_property:
-        return updated_property.value
+        return updated_property
     raise HTTPException(status_code=404, detail="Property not found")
 
 
@@ -106,7 +117,7 @@ async def get_all_users() -> list[UserSchema]:
 
 
 @router.get("/group/{chat_id}")
-async def get_group(chat_id: str) -> UserSchema:
+async def get_group(chat_id: str) -> GroupSchema:
     """
     Get group by chat_id.
     """
@@ -136,14 +147,3 @@ async def get_all_groups() -> list[GroupSchema]:
     if groups:
         return groups
     raise HTTPException(status_code=404, detail="No groups found")
-
-
-@router.get("/group/{chat_id}")
-async def get_group_by_chat_id(chat_id: str) -> GroupSchema:
-    """
-    Get group by chat_id.
-    """
-    group = await GroupsDAO.find_one_or_none(chat_id=chat_id)
-    if group:
-        return group
-    raise HTTPException(status_code=404, detail="Group not found")
