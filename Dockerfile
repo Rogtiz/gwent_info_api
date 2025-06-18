@@ -2,14 +2,13 @@ FROM python:3.11
 
 WORKDIR /gwent_info_api
 
-COPY ./requirements.txt /gwent_info_api/requirements.txt
 
-RUN pip install --upgrade pip
-
-RUN pip install --no-cache-dir --upgrade -r /gwent_info_api/requirements.txt
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
 
 COPY ./app ./app
 
+# Указываем PYTHONPATH, чтобы app был виден
 ENV PYTHONPATH=/code
 
 CMD ["fastapi", "run", "app/main.py", "--port", "80"]
