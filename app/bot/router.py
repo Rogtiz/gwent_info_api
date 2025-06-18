@@ -58,7 +58,7 @@ async def get_property(key: str) -> PropertySchema:
     """
     cached_value = await redis_client.get(key)
     if cached_value:
-        return cached_value
+        return dict(cached_value)
     property_value = await PropertiesDAO.find_one_or_none(name=key)
     if property_value:
         await redis_client.set(key, PropertySchema.from_orm(property_value).model_dump_json(), ex=3600)
