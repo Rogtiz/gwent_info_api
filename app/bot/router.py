@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException
 from app.bot.dao import UsersDAO, PropertiesDAO, FeedbacksDAO, GroupsDAO
 from app.bot.schemas import UserSchema, UserCreationSchema, FeedbackSchema, FeedbackCreationSchema, PropertyCreationSchema, GroupSchema, GroupCreationSchema, PropertySchema
-from app.redis import redis_client
+from app.redis import redis_cache, redis_client
 
 import json
 
@@ -54,16 +54,17 @@ async def create_feedback(feedback_data: FeedbackCreationSchema) -> FeedbackSche
 
 
 @router.get("/property/{key}")
+@redis_cache(schema=PropertySchema)
 async def get_property(key: str) -> PropertySchema:
     """
     Get a property by key.
     """
-    cached_value = await redis_client.get(key)
-    if cached_value:
-        return PropertySchema(**json.loads(cached_value))
+    # cached_value = await redis_client.get(key)
+    # if cached_value:
+    #     return PropertySchema(**json.loads(cached_value))
     property_value = await PropertiesDAO.find_one_or_none(name=key)
     if property_value:
-        await redis_client.set(key, PropertySchema.from_orm(property_value).model_dump_json(), ex=3600)
+        # await redis_client.set(key, PropertySchema.from_orm(property_value).model_dump_json(), ex=3600)
         return property_value
     raise HTTPException(status_code=404, detail="Property not found")
 
