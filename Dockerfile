@@ -6,7 +6,7 @@ COPY ./requirements.txt /gwent_info_api/requirements.txt
 
 RUN pip install --no-cache-dir --upgrade -r /gwent_info_api/requirements.txt
 
-COPY ./app /code/app
+COPY ./app /gwent_info_api/app
 
 CMD ["fastapi", "run", "app/main.py", "--port", "80"]
 
