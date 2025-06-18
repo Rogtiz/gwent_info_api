@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException
 from app.bot.dao import UsersDAO, PropertiesDAO, FeedbacksDAO, GroupsDAO
 from app.bot.schemas import UserSchema, UserCreationSchema, FeedbackSchema, FeedbackCreationSchema, PropertyCreationSchema, GroupSchema, GroupCreationSchema, PropertySchema
 from app.redis import redis_client
-import jason
+import json
 
 router = APIRouter()
 
