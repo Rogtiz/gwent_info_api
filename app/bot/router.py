@@ -8,6 +8,7 @@ import json
 router = APIRouter()
 
 @router.get("/user/{chat_id}")
+@redis_cache(schema=UserSchema, key_func=lambda chat_id: f"user:{chat_id}", expire=1200)
 async def get_user(chat_id: str) -> UserSchema:
     """
     Get user by chat_id.

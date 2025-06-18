@@ -1,8 +1,15 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+import logging
+
 from app.gwent.router import router as gwent_router
 from app.bot.router import router as bot_router
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+)
 
 app = FastAPI()
 
