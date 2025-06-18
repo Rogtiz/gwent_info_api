@@ -1,8 +1,10 @@
-FROM python:3.9
+FROM python:3.10
 
 WORKDIR /gwent_info_api
 
 COPY ./requirements.txt /gwent_info_api/requirements.txt
+
+RUN pip install --upgrade pip
 
 RUN pip install --no-cache-dir --upgrade -r /gwent_info_api/requirements.txt
 
