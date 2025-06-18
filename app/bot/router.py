@@ -3,6 +3,8 @@ from app.bot.dao import UsersDAO, PropertiesDAO, FeedbacksDAO, GroupsDAO
 from app.bot.schemas import UserSchema, UserCreationSchema, FeedbackSchema, FeedbackCreationSchema, PropertyCreationSchema, GroupSchema, GroupCreationSchema, PropertySchema
 from app.redis import redis_client
 
+import json
+
 router = APIRouter()
 
 @router.get("/user/{chat_id}")
@@ -58,7 +60,7 @@ async def get_property(key: str) -> PropertySchema:
     """
     cached_value = await redis_client.get(key)
     if cached_value:
-        return dict(cached_value)
+        return PropertySchema(**json.loads(cached_value))
     property_value = await PropertiesDAO.find_one_or_none(name=key)
     if property_value:
         await redis_client.set(key, PropertySchema.from_orm(property_value).model_dump_json(), ex=3600)
