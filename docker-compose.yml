@@ -8,6 +8,8 @@ services:
       - "8000:80"
     depends_on:
       - redis
+    env_file:
+      - .env
     networks:
       - backend
 
