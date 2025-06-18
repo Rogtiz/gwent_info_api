@@ -299,11 +299,11 @@ class GwentSiteParser:
                 return None
         
     def get_mmr_threshold_of_ranks(self):
-        result = {"8": None, "32": None, "200": None, "500": None}
+        result = {"rank8": None, "rank32": None, "rank200": None, "rank500": None}
         ranks = [8, 32, 200, 500]
         for rank in ranks:
             rank_info = self.get_mmr_threshold(rank)
             if rank_info is None:
                 return None
-            result[rank] = rank_info
+            result[f"rank{rank}"] = rank_info
         return result

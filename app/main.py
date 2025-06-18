@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.gwent.router import router as gwent_router
+from app.bot.router import router as bot_router
 
 app = FastAPI()
 
@@ -14,6 +15,7 @@ app.add_middleware(
 )
 
 app.include_router(gwent_router, prefix="/gwent", tags=["Gwent"])
+app.include_router(bot_router, prefix="/bot", tags=["Bot"])
 
 @app.get("/")
 def read_root():
