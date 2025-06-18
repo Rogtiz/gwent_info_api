@@ -2,6 +2,8 @@ from fastapi import APIRouter, Depends, HTTPException
 from app.gwent.utils import GwentAPI, GwentProfileParser, GwentSiteParser
 from app.gwent.schemas import FullUserRankingInfoSchema, FullProfileDataSchema, GwentSitePlayerInfoSchema, RanksThresholdSchema
 
+from app.redis import redis_cache
+
 router = APIRouter()
 
 api = GwentAPI()
@@ -17,6 +19,7 @@ async def get_user_id(username: str):
 
 
 @router.get("/user/{user_id}/ranking/{season_id}")
+@redis_cache(schema=FullUserRankingInfoSchema, key_func=lambda user_id: f"ranking_info:{user_id}", expire=1800)
 async def get_ranking_info(user_id: str, season_id: str) -> FullUserRankingInfoSchema:
     ranking_info = await api.get_ranking_info(user_id, season_id)
     if ranking_info:
@@ -25,6 +28,7 @@ async def get_ranking_info(user_id: str, season_id: str) -> FullUserRankingInfoS
 
 
 @router.get("/user/{user_id}/profile")
+@redis_cache(schema=FullProfileDataSchema, key_func=lambda user_id: f"profile_data:{user_id}", expire=1800)
 async def get_profile_data(user_id: str) -> FullProfileDataSchema:
     profile_data = await api.get_profile_data(user_id)
     if profile_data:
@@ -34,6 +38,7 @@ async def get_profile_data(user_id: str) -> FullProfileDataSchema:
 
 
 @router.get("/get_threshold_of_ranks")
+@redis_cache(schema=RanksThresholdSchema, key_func=lambda: "ranks_threshold", expire=36000)
 async def get_threshold_of_ranks() -> RanksThresholdSchema:
     thresholds = site_parser.get_mmr_threshold_of_ranks()
     if thresholds:
@@ -42,6 +47,7 @@ async def get_threshold_of_ranks() -> RanksThresholdSchema:
 
 
 @router.get("/get_username_by_place/{place}")
+@redis_cache(schema=GwentSitePlayerInfoSchema, key_func=lambda place: f"site_info:{place}", expire=3600)
 async def get_username_by_place(place: int) -> GwentSitePlayerInfoSchema:
     username = site_parser.get_mmr_threshold(place)
     if username:

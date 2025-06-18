@@ -121,6 +121,7 @@ async def get_all_users() -> list[UserSchema]:
 
 
 @router.get("/group/{chat_id}")
+@redis_cache(schema=GroupSchema, key_func=lambda chat_id: f"group:{chat_id}", expire=1200)
 async def get_group(chat_id: str) -> GroupSchema:
     """
     Get group by chat_id.
