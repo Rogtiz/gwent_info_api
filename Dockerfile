@@ -8,7 +8,7 @@ RUN pip install --upgrade pip
 
 RUN pip install --no-cache-dir --upgrade -r /gwent_info_api/requirements.txt
 
-COPY ./app ./app
+COPY ./app /gwent_info_api/app
 
 ENV PYTHONPATH=/code
 
