@@ -2,12 +2,17 @@ from typing import Optional
 from pydantic import BaseModel, Field, RootModel
 
 
-class RankingInfoRankProgressionSchema(BaseModel):
+class BaseSchema(BaseModel):
+    class Config:
+        from_attributes = True
+
+
+class RankingInfoRankProgressionSchema(BaseSchema):
     mosaic_piece_count: int
     rank: int
 
 
-class FactionProgressionsItemSchema(BaseModel):
+class FactionProgressionsItemSchema(BaseSchema):
     is_used_for_score_calculation: bool
     unlocked_score: int
     real_score: int
@@ -18,47 +23,47 @@ class FactionProgressionsItemSchema(BaseModel):
 
 
 
-class RankingInfoFactionProgressionsSchema(BaseModel):
+class RankingInfoFactionProgressionsSchema(BaseSchema):
     faction: str
     faction_progression: FactionProgressionsItemSchema
 
 
-class FactionGamesStatsItemSchema(BaseModel):
+class FactionGamesStatsItemSchema(BaseSchema):
     wins_count: int
     losses_count: int
     draws_count: int
     games_count: int
 
 
-class RankingInfoFactionGamesStatsSchema(BaseModel):
+class RankingInfoFactionGamesStatsSchema(BaseSchema):
     faction: str
     faction_games_stats: FactionGamesStatsItemSchema
 
 
-class RankingInfoRatingSchema(BaseModel):
+class RankingInfoRatingSchema(BaseSchema):
     score: int
 
 
-class RankingInfoParagonSchema(BaseModel):
+class RankingInfoParagonSchema(BaseSchema):
     paragon_level: int
     player_level: int
 
 
-class RankingInfoRequirementParamsSchema(BaseModel):
+class RankingInfoRequirementParamsSchema(BaseSchema):
     status: str
 
 
-class RankingInfoRequirementSchema(BaseModel):
+class RankingInfoRequirementSchema(BaseSchema):
     type: str
     params: RankingInfoRequirementParamsSchema
 
 
-class RankingInfoVanitySchema(BaseModel):
+class RankingInfoVanitySchema(BaseSchema):
     category: str
     item_definition_id: str
 
 
-class FullUserRankingInfoSchema(BaseModel):
+class FullUserRankingInfoSchema(BaseSchema):
     id: str
     username: str
     platform: str
@@ -87,17 +92,17 @@ class FullUserRankingInfoSchema(BaseModel):
     vanity: list[RankingInfoVanitySchema] | None = None
 
 
-class ProfileDataProgressBarSchema(BaseModel):
+class ProfileDataProgressBarSchema(BaseSchema):
     level: int
     crown_pieces: int
 
 
-class ProfileDataAccomplishmentSchema(BaseModel):
+class ProfileDataAccomplishmentSchema(BaseSchema):
     id: str
     type: str
 
 
-class ProfileDataStatsWinsSchema(BaseModel):
+class ProfileDataStatsWinsSchema(BaseSchema):
     Monster: int
     Nilfgaard: int
     NorthernKingdom: int
@@ -106,7 +111,7 @@ class ProfileDataStatsWinsSchema(BaseModel):
     Syndicate: int
 
 
-class ProfileDataStatsSchema(BaseModel):
+class ProfileDataStatsSchema(BaseSchema):
     wins: ProfileDataStatsWinsSchema
     ggs_sent_count: int
     ggs_received_count: int
@@ -124,14 +129,14 @@ class ProfileDataStatsSchema(BaseModel):
     pro_ladder_games_syndicate: int
 
 
-class ProfileDataParagonSchema(BaseModel):
+class ProfileDataParagonSchema(BaseSchema):
     paragon_level: int
     player_level: int
     current_level_experience: int
     next_level_required_experience: int
 
 
-class FullProfileDataSchema(BaseModel):
+class FullProfileDataSchema(BaseSchema):
     id: str
     progress_bar: ProfileDataProgressBarSchema
     accomplishments: list[ProfileDataAccomplishmentSchema]
@@ -141,7 +146,7 @@ class FullProfileDataSchema(BaseModel):
     paragon: ProfileDataParagonSchema
 
 
-class GwentSitePlayerInfoSchema(BaseModel):
+class GwentSitePlayerInfoSchema(BaseSchema):
     place: int
     country: str
     nickname: str
@@ -149,7 +154,7 @@ class GwentSitePlayerInfoSchema(BaseModel):
     mmr: str
 
 
-class RanksThresholdSchema(BaseModel):
+class RanksThresholdSchema(BaseSchema):
     rank8: GwentSitePlayerInfoSchema
     rank32: GwentSitePlayerInfoSchema
     rank200: GwentSitePlayerInfoSchema
