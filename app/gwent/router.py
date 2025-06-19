@@ -13,16 +13,16 @@ site_parser = GwentSiteParser()
 
 @router.get("/user/{username}/id")
 async def get_user_id(username: str):
-    is_existing = PlayersDAO.find_one_or_none(nickname=username)
+    is_existing = await PlayersDAO.find_one_or_none(nickname=username)
     if is_existing:
         return {"user_id": is_existing.gwent_id}
     user_id = await api.get_user_id(username)
     if user_id:
-        is_existing = PlayersDAO.find_one_or_none(gwent_id=user_id)
+        is_existing = await PlayersDAO.find_one_or_none(gwent_id=user_id)
         if is_existing:
-            PlayersDAO.update(model_id=is_existing.id, nickname=username)
+            await PlayersDAO.update(model_id=is_existing.id, nickname=username)
         else:
-            PlayersDAO.add(nickname=username, gwent_id=user_id)
+            await PlayersDAO.add(nickname=username, gwent_id=user_id)
         return {"user_id": user_id}
     raise HTTPException(status_code=404, detail="User not found")
 
