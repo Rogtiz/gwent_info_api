@@ -8,6 +8,7 @@ class Players(Base):
     __tablename__ = "players"
 
     id = Column(BigInteger, primary_key=True, autoincrement=True)
+    nickname = Column(String, unique=True)
     gwent_id = Column(String, unique=True, nullable=False)
 
 
