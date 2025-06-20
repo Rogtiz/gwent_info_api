@@ -331,9 +331,3 @@ class GwentSiteParser:
             result[f"rank{rank}"] = rank_info
         return result
 
-
-
-# gwent_api = GwentAPI()
-# gwent_profile_parser = GwentProfileParser()
-
-# print(gwent_profile_parser.format_collection("Rogtiz", gwent_api.get_card_collection("53208555804852247")))
