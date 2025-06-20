@@ -89,7 +89,7 @@ class FullUserRankingInfoSchema(BaseSchema):
     rating: RankingInfoRatingSchema
     paragon: RankingInfoParagonSchema
     requirements: list[RankingInfoRequirementSchema]
-    vanity: list[RankingInfoVanitySchema] | None = None
+    vanities: list[RankingInfoVanitySchema] | None = None
 
 
 class ProfileDataProgressBarSchema(BaseSchema):
