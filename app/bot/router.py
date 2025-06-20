@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException
 from app.bot.dao import UsersDAO, PropertiesDAO, FeedbacksDAO, GroupsDAO
-from app.bot.schemas import UserSchema, UserCreationSchema, FeedbackSchema, FeedbackCreationSchema, PropertyCreationSchema, GroupSchema, GroupCreationSchema, PropertySchema
+from app.bot.schemas import UserSchema, UserCreationSchema, FeedbackSchema, FeedbackCreationSchema, PropertyCreationSchema, GroupSchema, GroupCreationSchema, PropertySchema, UserUpdateSchema
 from app.redis import redis_cache, redis_client
 
 import json
@@ -18,6 +18,7 @@ async def get_user(chat_id: str) -> UserSchema:
         return user
     raise HTTPException(status_code=404, detail="User not found")
 
+
 @router.post("/user")
 async def create_user(user_data: UserCreationSchema) -> UserSchema:
     """
@@ -27,6 +28,15 @@ async def create_user(user_data: UserCreationSchema) -> UserSchema:
     if user:
         return user
     raise HTTPException(status_code=400, detail="User not created")
+
+
+@router.put("/user/{user_id}")
+async def update_user(user_id: int, user_data: UserUpdateSchema) -> UserSchema:
+    is_existing = await UsersDAO.find_one_or_none(id=user_id)
+    if is_existing:
+        updated_user = await UsersDAO.update(model_id=user_id, **user_data.dict())
+        return updated_user
+    raise HTTPException(status_code=404, detail="User not found")
 
 
 @router.get("/feedback")

@@ -1,3 +1,4 @@
+from typing import Optional
 from pydantic import BaseModel, Field
 
 
@@ -19,6 +20,16 @@ class UserSchema(BaseSchema):
     disabled: bool = False
     admin_level: int = 0
     is_banned: bool = False
+
+
+class UserUpdateSchema(BaseSchema):
+    username: Optional[str]
+    chat_id: Optional[str]
+    full_name: Optional[str]
+    description: Optional[str]
+    disabled: Optional[bool]
+    admin_level: Optional[int]
+    is_banned: Optional[bool]
 
 
 class FeedbackCreationSchema(BaseSchema):
