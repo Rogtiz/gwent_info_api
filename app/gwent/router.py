@@ -1,9 +1,11 @@
+import json
 from fastapi import APIRouter, Depends, HTTPException
 from app.gwent.utils import GwentAPI, GwentProfileParser, GwentSiteParser
 from app.gwent.schemas import FullUserRankingInfoSchema, FullProfileDataSchema, GwentSitePlayerInfoSchema, RanksThresholdSchema, FullDeckInfoSchema, ProfileImageSchema
 from app.gwent.dao import PlayersDAO
+from app.bot.dao import PropertiesDAO
 
-from app.redis import redis_cache
+from app.redis import redis_cache, redis_client
 
 router = APIRouter()
 
@@ -27,9 +29,13 @@ async def get_user_id(username: str):
     raise HTTPException(status_code=404, detail="User not found")
 
 
-@router.get("/user/{user_id}/ranking/{season_id}")
-@redis_cache(schema=FullUserRankingInfoSchema, key_func=lambda user_id, season_id: f"ranking_info:{user_id}", expire=1800)
-async def get_ranking_info(user_id: str, season_id: str) -> FullUserRankingInfoSchema:
+@router.get("/user/{user_id}/ranking")
+@redis_cache(schema=FullUserRankingInfoSchema, key_func=lambda user_id: f"ranking_info:{user_id}", expire=1800)
+async def get_ranking_info(user_id: str) -> FullUserRankingInfoSchema:
+    property = await PropertiesDAO.find_one_or_none(name="season_id")
+    if not property:
+        raise HTTPException(status_code=579)
+    season_id = property.value
     ranking_info = await api.get_ranking_info(user_id, season_id)
     if ranking_info:
         return ranking_info
@@ -81,10 +87,17 @@ async def get_username_by_place(place: int) -> GwentSitePlayerInfoSchema:
         return username
     raise HTTPException(status_code=404, detail="Username not found")
 
+#  -> list[GwentSitePlayerInfoSchema]
 
 @router.get("/get_top_players")
-async def get_top_players(page: int = 1) -> list[GwentSitePlayerInfoSchema]:
+async def get_top_players(page: int = 1):
+    cached = await redis_client.get(f"top_players:{page}")
+    if cached:
+        print("Cache")
+        return json.loads(cached)
     top_players = site_parser.get_top_ranks(page)
     if top_players:
+        print("Not cache")
+        await redis_client.set(f"top_players:{page}", json.dumps(top_players), ex=3600)
         return top_players
     raise HTTPException(status_code=404, detail="Top players not found")

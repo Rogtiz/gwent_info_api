@@ -238,11 +238,14 @@ class GwentSiteParser:
             current_datetime = datetime.datetime.now()
             current_month_name = current_datetime.strftime("%B")
             url = f"https://masters.playgwent.com/en/rankings/gwentfinity-2/{current_month_name.lower()}-season-{current_datetime.year}/1/{page}"
-            # response = requests.get(url)
-            # response = requests.get(url)
-            # response = requests.get(url)
             result = []
             response = requests.get(url)
+            counter = 0
+            while response.status_code != 200:
+                if counter == 4:
+                    break
+                response = requests.get(url)
+                counter += 1
             if response.status_code == 200:
                 soup = BeautifulSoup(response.content, 'html.parser')
                 # prorank_description = soup.find('li', {'class': 'current'}).text.strip().lower().capitalize()
@@ -287,6 +290,12 @@ class GwentSiteParser:
             # response = requests.get(url)
             # response = requests.get(url)
             response = requests.get(url)
+            counter = 0
+            while response.status_code != 200:
+                if counter == 4:
+                    break
+                response = requests.get(url)
+                counter += 1
             if response.status_code == 200:
                 soup = BeautifulSoup(response.content, 'html.parser')
                 # prorank_description = soup.find('li', {'class': 'current'}).text.strip().lower().capitalize()
