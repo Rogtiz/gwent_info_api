@@ -56,7 +56,7 @@ class GwentAPI:
             user_resp = await self.client.get(f'https://users.gog.com/users?username={username}', headers=headers)
             if user_resp.status_code == 200:
                 data = user_resp.json()
-                PlayersDAO.add_player_if_not_exists(data['id'])
+                await PlayersDAO.add_player_if_not_exists(data['id'])
                 return data['id']
 
         return None
@@ -97,6 +97,29 @@ class GwentAPI:
                 return False
             return soup
         return False
+
+    async def get_profile_image(self, username: str) -> dict | None:
+        profile_page = await self.get_profile_page(username)
+        if profile_page:
+            avatar_img = profile_page.find('div', class_='l-player-details__avatar').find('img')
+            if avatar_img:
+                avatar_relative_url = avatar_img['src']
+                avatar_url = f"https://www.playgwent.com{avatar_relative_url}"
+                if avatar_url == "https://www.playgwent.com/img/profile/avatars/0-default.png":
+                    avatar_url = None
+            else:
+                avatar_url = None
+            border_img = profile_page.find('div', class_='l-player-details__border').find('img')
+            if border_img:
+                border_relative_url = border_img['src']
+                border_url = f"https://www.playgwent.com{border_relative_url}"
+            else:
+                border_url = None
+            return {
+                "avatar_url": avatar_url,
+                "border_url": border_url
+            }
+        return None
 
     # async def get_ranking_site_info(self, page):
     #     current_datetime = datetime.datetime.now()
@@ -307,3 +330,10 @@ class GwentSiteParser:
                 return None
             result[f"rank{rank}"] = rank_info
         return result
+
+
+
+# gwent_api = GwentAPI()
+# gwent_profile_parser = GwentProfileParser()
+
+# print(gwent_profile_parser.format_collection("Rogtiz", gwent_api.get_card_collection("53208555804852247")))
