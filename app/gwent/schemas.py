@@ -159,3 +159,53 @@ class RanksThresholdSchema(BaseSchema):
     rank32: GwentSitePlayerInfoSchema
     rank200: GwentSitePlayerInfoSchema
     rank500: GwentSitePlayerInfoSchema
+
+
+class CardSetItemSchema(BaseSchema):
+    Neutral: int
+    Monster: int
+    Nilfgaard: int
+    NorthernKingdom: int
+    Scoiatael: int
+    Skellige: int
+    Syndicate: int
+
+
+class CardSetSchema(BaseSchema):
+    non_premium: CardSetItemSchema
+    premium: CardSetItemSchema
+    any: CardSetItemSchema
+
+
+class CardCollectionSchema(BaseSchema):
+    BaseSet: CardSetSchema
+    AllCards: CardSetSchema
+    Campaign1: CardSetSchema
+    Expansion1: CardSetSchema
+    Expansion2: CardSetSchema
+    Expansion3: CardSetSchema
+    Expansion4: CardSetSchema
+    Expansion5: CardSetSchema
+    Expansion6: CardSetSchema
+    Expansion7: CardSetSchema
+    Expansion8: CardSetSchema
+
+
+class CardDefinitionSchema(BaseSchema):
+    id: str
+
+
+class FavouriteCardItem(BaseSchema):
+    card_definition: CardDefinitionSchema
+
+
+class FullDeckInfoSchema(BaseSchema):
+    collection: CardCollectionSchema
+    full_collection: CardCollectionSchema
+    favourite_card: FavouriteCardItem
+    favourite_faction: str
+
+
+class ProfileImageSchema(BaseSchema):
+    avatar_url: Optional[str] = None
+    border_url: Optional[str] = None
