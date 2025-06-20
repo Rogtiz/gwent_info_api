@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from app.gwent.utils import GwentAPI, GwentProfileParser, GwentSiteParser
-from app.gwent.schemas import FullUserRankingInfoSchema, FullProfileDataSchema, GwentSitePlayerInfoSchema, RanksThresholdSchema
+from app.gwent.schemas import FullUserRankingInfoSchema, FullProfileDataSchema, GwentSitePlayerInfoSchema, RanksThresholdSchema, FullDeckInfoSchema, ProfileImageSchema
 from app.gwent.dao import PlayersDAO
 
 from app.redis import redis_cache
@@ -36,6 +36,15 @@ async def get_ranking_info(user_id: str, season_id: str) -> FullUserRankingInfoS
     raise HTTPException(status_code=404, detail="Ranking information not found")
 
 
+@router.get("/user/{username}/profile_image")
+@redis_cache(schema=ProfileImageSchema, key_func=lambda username: f"profile_image:{username}", expire=600)
+async def get_profile_page(username: str) -> ProfileImageSchema:
+    profile_image = await api.get_profile_image(username)
+    if profile_image:
+        return profile_image
+    raise HTTPException(status_code=404, detail="Profile information not found")
+
+
 @router.get("/user/{user_id}/profile")
 @redis_cache(schema=FullProfileDataSchema, key_func=lambda user_id: f"profile_data:{user_id}", expire=1800)
 async def get_profile_data(user_id: str) -> FullProfileDataSchema:
@@ -44,6 +53,15 @@ async def get_profile_data(user_id: str) -> FullProfileDataSchema:
         # return profile_parser.format_collection(profile_data.get("username"), profile_data)
         return profile_data
     raise HTTPException(status_code=404, detail="Profile data not found")
+
+
+@router.get("/user/{user_id}/deck")
+@redis_cache(schema=FullDeckInfoSchema, key_func=lambda user_id: f"deck_info:{user_id}", expire=1800)
+async def get_deck_info(user_id: str) -> FullDeckInfoSchema:
+    deck_info = await api.get_card_collection(user_id)
+    if deck_info:
+        return deck_info
+    raise HTTPException(status_code=404, detail="Deck data not found")
 
 
 @router.get("/get_threshold_of_ranks")
