@@ -38,6 +38,8 @@ async def get_ranking_info(user_id: str) -> FullUserRankingInfoSchema:
     season_id = property.value
     ranking_info = await api.get_ranking_info(user_id, season_id)
     if ranking_info:
+        if ranking_info.get("error"):
+            raise HTTPException(status_code=484, detail="Player hasn't played this season")
         return ranking_info
     raise HTTPException(status_code=404, detail="Ranking information not found")
 
