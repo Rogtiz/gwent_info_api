@@ -22,6 +22,7 @@ class OverallWinRate(Base):
     northern_realms_wr = Column(Double, nullable=False)
     syndicate_wr = Column(Double, nullable=False)
     scoiatael_wr = Column(Double, nullable=False)
+    players_count = Column(Integer)
     date = Column(DateTime)
 
 
@@ -36,6 +37,7 @@ class RankWinRate(Base):
     northern_realms_wr = Column(Double, nullable=False)
     syndicate_wr = Column(Double, nullable=False)
     scoiatael_wr = Column(Double, nullable=False)
+    players_count = Column(Integer)
     date = Column(DateTime)
 
 
@@ -49,4 +51,5 @@ class TopWinrate(Base):
     northern_realms_wr = Column(Double, nullable=False)
     syndicate_wr = Column(Double, nullable=False)
     scoiatael_wr = Column(Double, nullable=False)
+    players_count = Column(Integer)
     date = Column(DateTime)

@@ -115,6 +115,7 @@ async def update_property(key: str, value: str) -> PropertySchema:
         raise HTTPException(status_code=404, detail="Property not found")
     updated_property = await PropertiesDAO.update(model_id=property.id, name=key, value=value)
     if updated_property:
+        await redis_client.set("season_id", value=value)
         return updated_property
     raise HTTPException(status_code=404, detail="Property not found")
 
