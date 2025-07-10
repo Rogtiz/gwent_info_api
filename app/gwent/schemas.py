@@ -1,5 +1,6 @@
 from typing import Optional
 from pydantic import BaseModel, Field, RootModel
+from datetime import date
 
 
 class BaseSchema(BaseModel):
@@ -209,3 +210,14 @@ class FullDeckInfoSchema(BaseSchema):
 class ProfileImageSchema(BaseSchema):
     avatar_url: Optional[str] = None
     border_url: Optional[str] = None
+
+
+class FactionsWinrateInfo(BaseSchema):
+    nilfgaard: float
+    monsters: float
+    skellige: float
+    northern_realms: float
+    syndicate: float
+    scoiatael: float
+    date: date
+    players_count: int

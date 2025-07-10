@@ -1,11 +1,13 @@
 import json
+from typing import List
 from fastapi import APIRouter, Depends, HTTPException
 from app.gwent.utils import GwentAPI, GwentProfileParser, GwentSiteParser
-from app.gwent.schemas import FullUserRankingInfoSchema, FullProfileDataSchema, GwentSitePlayerInfoSchema, RanksThresholdSchema, FullDeckInfoSchema, ProfileImageSchema
-from app.gwent.dao import PlayersDAO
+from app.gwent.schemas import FullUserRankingInfoSchema, FullProfileDataSchema, GwentSitePlayerInfoSchema, RanksThresholdSchema, FullDeckInfoSchema, ProfileImageSchema, FactionsWinrateInfo
+from app.gwent.dao import PlayersDAO, OverallWinRateDAO, RankWinRateDAO, TopWinrateDAO
 from app.bot.dao import PropertiesDAO
 
 from app.redis import redis_cache, redis_client
+from datetime import datetime
 
 router = APIRouter()
 
@@ -103,3 +105,25 @@ async def get_top_players(page: int = 1):
         await redis_client.set(f"top_players:{page}", json.dumps(top_players), ex=3600)
         return top_players
     raise HTTPException(status_code=404, detail="Top players not found")
+
+
+@router.get("/get_winrate")
+async def get_winrate(start_date: str, end_date: str, table_name: str) -> List[FactionsWinrateInfo]:
+    try:
+        start = datetime.strptime(start_date, "%Y-%m-%d").date()
+        end = datetime.strptime(end_date, "%Y-%m-%d").date()
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid date format. Use YYYY-MM-DD.")
+    
+    if table_name is "overall_win_rate":
+        winrate = await OverallWinRateDAO.get_winrate(start, end)
+    elif table_name is "rank_win_rate":
+        winrate = await RankWinRateDAO.get_winrate(start, end)
+    elif table_name is "top_win_rate":
+        winrate = await TopWinrateDAO.get_winrate(start, end)
+    else:
+        raise HTTPException(status_code=400, detail="Invalid table name. Use 'overall_win_rate', 'rank_win_rate', or 'top_win_rate'.")
+
+    if winrate:
+        return winrate
+    raise HTTPException(status_code=404, detail="Winrate data not found")
