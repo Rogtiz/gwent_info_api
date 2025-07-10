@@ -1,3 +1,4 @@
+from datetime import timedelta
 from sqlalchemy import select, insert, update, delete
 
 from app.dao.base import BaseDAO
@@ -9,10 +10,19 @@ class WinrateDAO(BaseDAO):
     @classmethod
     async def get_by_period(self, start_date, end_date):
         async with async_session_maker() as session:
-            stmt = select(self.model).where(
-                self.model.date >= start_date,
-                self.model.date <= end_date
-            )
+        # Convert to datetime.date if needed
+            if start_date == end_date:
+                next_day = start_date + timedelta(days=1)
+                stmt = select(self.model).where(
+                    self.model.date >= start_date,
+                    self.model.date < next_day
+                )
+            else:
+                next_day = end_date + timedelta(days=1)
+                stmt = select(self.model).where(
+                    self.model.date >= start_date,
+                    self.model.date < next_day
+                )
             return (await session.execute(stmt)).scalars().all()
 
 

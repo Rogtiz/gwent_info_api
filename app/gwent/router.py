@@ -115,12 +115,12 @@ async def get_winrate(start_date: str, end_date: str, table_name: str) -> List[F
     except ValueError:
         raise HTTPException(status_code=400, detail="Invalid date format. Use YYYY-MM-DD.")
     
-    if table_name is "overall_win_rate":
-        winrate = await OverallWinRateDAO.get_winrate(start, end)
-    elif table_name is "rank_win_rate":
-        winrate = await RankWinRateDAO.get_winrate(start, end)
-    elif table_name is "top_win_rate":
-        winrate = await TopWinrateDAO.get_winrate(start, end)
+    if table_name == "overall_win_rate":
+        winrate = await OverallWinRateDAO.get_by_period(start, end)
+    elif table_name == "rank_win_rate":
+        winrate = await RankWinRateDAO.get_by_period(start, end)
+    elif table_name == "top_win_rate":
+        winrate = await TopWinrateDAO.get_by_period(start, end)
     else:
         raise HTTPException(status_code=400, detail="Invalid table name. Use 'overall_win_rate', 'rank_win_rate', or 'top_win_rate'.")
 
